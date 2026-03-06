@@ -14,6 +14,20 @@ def get_year(item: dict):
         return int(frm[:4])
     return None
 
+def get_japanese_title(item: dict):
+    """从 Jikan API 响应中提取日文标题"""
+    # 尝试从 title_japanese 字段获取
+    if item.get("title_japanese"):
+        return item.get("title_japanese")
+    
+    # 尝试从 titles 数组中查找日文版本
+    titles = item.get("titles") or []
+    for title_obj in titles:
+        if title_obj.get("type") == "Japanese":
+            return title_obj.get("title", "")
+    
+    return ""
+
 def fetch_page(page: int):
     r = requests.get(BASE, params={"type": "tv", "page": page}, timeout=30)
     r.raise_for_status()
@@ -36,6 +50,7 @@ def main(min_year=2000, need=200):
             rows.append({
                 "rank": item.get("rank"),
                 "title": item.get("title"),
+                "title_jp": get_japanese_title(item),
                 "score": item.get("score"),
                 "scored_by": item.get("scored_by"),   # 评分人数
                 "members": item.get("members"),       # 收藏/关注人数（人气 proxy）
@@ -50,12 +65,12 @@ def main(min_year=2000, need=200):
         page += 1
         time.sleep(0.5)  # 避免撞 rate limit 
 
-    with open("mal_top_tv_2000plus_200.csv", "w", newline="", encoding="utf-8") as f:
+    with open("mal_top_tv_2000plus_200_jp.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=rows[0].keys())
         w.writeheader()
         w.writerows(rows)
 
-    print("Saved:", "mal_top_tv_2000plus_200.csv", "rows:", len(rows))
+    print("Saved:", "mal_top_tv_2000plus_200_jp.csv", "rows:", len(rows))
 
 if __name__ == "__main__":
     main(min_year=2000, need=200)
