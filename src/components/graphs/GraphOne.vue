@@ -6,25 +6,97 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch, onBeforeUnmount, defineExpose } from 'vue';
 import { useSharedData } from '../../composables/useSharedData';
 import { buildGenreHeatmapData } from '../../utils/dataLoader';
-import { drawHeatmap } from '../../utils/d3Chart';
+import { HeatmapChart } from '../../utils/heatmapChart';
 
 const props = defineProps({
   title: {
     type: String,
     default: 'Genre × Platform Heatmap'
+  },
+  stepState: {
+    type: Object,
+    default: null
+  },
+  sharedState: {
+    type: Object,
+    default: null
   }
 });
 
 const chartRef = ref(null);
 const { globalConfig, loadData } = useSharedData();
+let heatmapInstance = null;
+let rawHeatmapData = null;
 
+// Initialize heatmap on mount
 onMounted(async () => {
   const rawData = await loadData();
-  const heatmapData = buildGenreHeatmapData(rawData);
-  drawHeatmap(chartRef.value, heatmapData, globalConfig.chart);
+  rawHeatmapData = buildGenreHeatmapData(rawData);
+  
+  // Create and initialize heatmap instance
+  heatmapInstance = new HeatmapChart(globalConfig.chart);
+  heatmapInstance.init(chartRef.value, rawHeatmapData, props.sharedState || {});
+});
+
+// Watch for step state changes and update visualization
+watch(() => props.stepState, (newState) => {
+  if (heatmapInstance && newState) {
+    heatmapInstance.update(newState, props.sharedState || {});
+  }
+}, { deep: true });
+
+// Watch for shared state changes
+watch(() => props.sharedState, (newState) => {
+  if (heatmapInstance && props.stepState) {
+    heatmapInstance.update(props.stepState, newState || {});
+  }
+}, { deep: true });
+
+// Handle window resize
+const handleResize = () => {
+  if (heatmapInstance) {
+    heatmapInstance.resize();
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+});
+
+// Cleanup on unmount
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+  if (heatmapInstance) {
+    heatmapInstance.destroy();
+  }
+});
+
+// Expose Component Contract methods for external use
+defineExpose({
+  init: (container, data, sharedState) => {
+    if (!heatmapInstance) {
+      heatmapInstance = new HeatmapChart(globalConfig.chart);
+    }
+    heatmapInstance.init(container, data, sharedState);
+  },
+  update: (stepState, sharedState) => {
+    if (heatmapInstance) {
+      heatmapInstance.update(stepState, sharedState);
+    }
+  },
+  resize: () => {
+    if (heatmapInstance) {
+      heatmapInstance.resize();
+    }
+  },
+  destroy: () => {
+    if (heatmapInstance) {
+      heatmapInstance.destroy();
+    }
+  }
 });
 </script>
 
@@ -44,6 +116,6 @@ onMounted(async () => {
 
 .graph-canvas {
   width: 100%;
-  min-height: 400px;
+  min-height: 500px;
 }
 </style>

@@ -25,16 +25,16 @@ If a title appears on multiple platforms, the records are merged into a single r
 ### Identity Fields
 
 - `id` (string)  
-  每个anime的Unique internal identifier.
+  Unique internal identifier for each anime.
 
 - `title_en` (string)  
-  英文名
+  English title.
 
 - `title_jp` (string)  
-  日文名
+  Japanese title.
 
 - `year` (number)  
-  发布年份
+  Release year.
 
 - `type` (string)  
   Anime type, e.g. `TV`, `Movie`, `OVA`.  
@@ -42,33 +42,32 @@ If a title appears on multiple platforms, the records are merged into a single r
 
 ---
 
-### Genre Fields
+## 4. Genre Fields
 
 - `genres` (array of strings)  
-  All assigned genres for this title. Example:
-  `["Sci-Fi", "Drama", "Psychological"]`
-  
+  All assigned genres for this title.
 
-- `primary_genre` (string)  
-  The main genre used for aggregation and filtering in visualizations.
-  涉及Genre元素时，选择最靠前的那一个代表动画类别的genre标签。例如：
-  [奇幻，冒险]，则该anime的primary_genre为奇幻。
 
-#### Genre Rule
-Because one anime can belong to multiple genres, we define:
+Anime titles may belong to **multiple genres**, and the dataset therefore supports **multi-label genre membership**.
 
-- `genres`: used for detailed filtering and tooltip display
-- `primary_genre`: used for heatmap, radar, and ranking aggregation
+Genres will be used for filtering, grouping, and aggregation in visualizations.
 
-Primary genre assignment should follow one agreed rule across the team, such as:
-1. the first listed genre from the source, or
-2. a manually cleaned dominant genre
+### Genre Aggregation Rule
 
-This rule must remain consistent across all views.
+When aggregating statistics by genre:
+
+- If an anime belongs to multiple genres, it contributes to **each genre's statistics**.
+
+This anime will be included in both:
+
+- Sci-Fi group
+- Drama group
+
+This **multi-membership rule** ensures that genre analysis preserves the multi-dimensional nature of anime classification.
 
 ---
 
-## 4. Platform-Specific Rating Fields
+## 5. Platform-Specific Rating Fields
 
 ### MyAnimeList
 
@@ -118,7 +117,7 @@ This rule must remain consistent across all views.
 
 ---
 
-## 5. Derived Fields
+## 6. Derived Fields
 
 These fields are computed during preprocessing.
 
@@ -139,7 +138,7 @@ These fields are computed during preprocessing.
 
 ---
 
-## 6. Missing Value Rules
+## 7. Missing Value Rules
 
 If a title does not exist on a platform or data is unavailable:
 
@@ -152,7 +151,7 @@ Do **not** use `0` to represent missing data.
 
 ---
 
-## 7. Normalization Rules
+## 8. Normalization Rules
 
 Because rating scales and distributions may differ across platforms, cross-platform comparison should primarily use:
 
@@ -160,61 +159,83 @@ Because rating scales and distributions may differ across platforms, cross-platf
 - `imdb_percentile`
 - `bangumi_percentile`
 
-### Why percentile?
+### Why Percentile?
+
 Percentiles reduce the effect of different platform rating cultures and make scores more comparable.
 
 ### Raw vs Normalized Usage
-- Raw scores: used in title-level display and tooltip
-- Percentile scores: used in cross-platform comparisons, heatmap summaries, and radar charts
+
+**Raw scores**
+
+Used for:
+
+- title-level comparison
+- tooltip display
+
+**Percentile scores**
+
+Used for:
+
+- cross-platform comparisons
+- heatmap summaries
+- radar charts
+- aggregated genre statistics
 
 ---
 
-## 8. Aggregation Rules
+## 9. Aggregation Rules
 
-### For Heatmap
+### Heatmap
+
 Group by:
 
-- `primary_genre`
+- `genre`
 - platform
 
 Metric:
-- mean percentile score within each genre-platform group
+
+Mean percentile score within each **genre-platform** group.
 
 ---
 
-### For Radar Charts
+### Radar Charts
+
 Group by:
 
-- `primary_genre`
+- `genre`
 
 Metrics:
-- platform mean percentile
-- optional IQR / variance for stability
+
+- mean percentile score per platform
+- optional IQR or variance to represent rating stability
 
 ---
 
-### For Parallel Coordinates
+### Parallel Coordinates
+
 Filter by:
 
-- selected `primary_genre`
+Selected `genre`.
+
+Include titles whose `genres` array contains the selected genre.
 
 Use:
+
 - `mal_rank`
 - `imdb_rank`
 - `bangumi_rank`
 
-for titles that have rankings on at least two platforms.
+for titles ranked on **at least two platforms**.
 
 ---
 
-## 9. Interaction Fields Required by Front-End
+## 10. Interaction Fields Required by Front-End
 
-The following fields must always be available to all visualization components:
+The following fields must be available to all visualization components:
 
 - `id`
 - `title_en`
 - `year`
-- `primary_genre`
 - `genres`
 - `mal_score`
 - `imdb_score`
@@ -231,17 +252,16 @@ The following fields must always be available to all visualization components:
 
 ---
 
-## 10. Example Record
+## 11. Example Record
 
 ```json
 {
-  "id": "anime_001",
+  "id": "001",
   "title_en": "Steins;Gate",
   "title_jp": "シュタインズ・ゲート",
   "year": 2011,
   "type": "TV",
   "genres": ["Sci-Fi", "Thriller", "Drama"],
-  "primary_genre": "Sci-Fi",
   "mal_score": 9.07,
   "mal_votes": 2500000,
   "mal_rank": 2,
@@ -255,3 +275,4 @@ The following fields must always be available to all visualization components:
   "bangumi_rank": 5,
   "bangumi_percentile": 0.988
 }
+

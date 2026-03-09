@@ -25,8 +25,11 @@ export function buildGenreHeatmapData(rawData) {
   rawData.forEach(anime => {
     if (!anime.genre) return;
     
+    // 处理多个 genre（用 | 分隔）
     const genres = anime.genre.split('|').map(g => g.trim());
     
+    // 遵循 data_schema.md：多标签规则
+    // 每个 anime 对所有它的 genre 都有贡献
     genres.forEach(genre => {
       if (!heatmapData[genre]) {
         heatmapData[genre] = {
@@ -36,12 +39,14 @@ export function buildGenreHeatmapData(rawData) {
         };
       }
       
+      // 每个 anime 对该 genre 的每个 platform 都贡献一个 percentile 值
       if (anime.mal_percentile) heatmapData[genre].mal.push(parseFloat(anime.mal_percentile));
       if (anime.imdb_percentile) heatmapData[genre].imdb.push(parseFloat(anime.imdb_percentile));
       if (anime.bgm_percentile) heatmapData[genre].bgm.push(parseFloat(anime.bgm_percentile));
     });
   });
   
+  // 转换为热力图格式
   const result = [];
   Object.entries(heatmapData).forEach(([genre, platformData]) => {
     platforms.forEach(platform => {
@@ -53,7 +58,8 @@ export function buildGenreHeatmapData(rawData) {
       result.push({
         genre: genre,
         platform: platform,
-        value: avgPercentile
+        value: avgPercentile,
+        count: scores.length
       });
     });
   });
