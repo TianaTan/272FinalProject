@@ -1,10 +1,11 @@
 <template>
   <main class="app-shell">
     <header class="app-header">
-      <h1>Anime Universe</h1>
-      <p class="tagline">Exploring the Story Behind Anime Data · Understanding Trends Through Interactive Visualization</p>
+      <h1>Do different communities systematically favor different genres?</h1>
+      <p class="tagline">Anime is discussed and rated by communities across many online platforms, each with its own audience and cultural context. While these platforms often evaluate the same titles, their rating patterns do not always align.</p>
+      <p class="tagline">In this project, we compare anime ratings from three major platforms: <a href="https://myanimelist.net/" target="_blank" class="platform-link">MyAnimeList</a>, <a href="https://www.imdb.com/" target="_blank" class="platform-link">IMDb</a>, and <a href="https://bgm.tv/" target="_blank" class="platform-link">Bangumi</a>. Rather than simply asking which platform gives higher scores, we investigate a deeper question: do different communities systematically favor different genres?</p>
       <p class="subtitle" v-if="globalState.activeStep !== null">
-        <span class="step-indicator">Step {{ globalState.activeStep + 1 }}</span>
+        <!-- <span class="step-indicator">Step {{ globalState.activeStep + 1 }}</span> -->
       </p>
     </header>
 
@@ -56,28 +57,28 @@ const globalState = inject('globalState');
 const steps = [
   {
     id: 'step-1',
-    title: '🎬 Entry: The Breadth of the Anime World',
-    body: 'Countless new anime productions emerge every year, forming a vast creative ecosystem. This visualization showcases the distribution of different anime genres, from action-packed adventures to healing slice-of-life. The diversity is remarkable. As you scroll down, we\'ll explore the stories hidden behind the data.'
+    title: '🎬 Are rating patterns consistent across genres and platforms?',
+    body: 'This heatmap shows the average percentile rank for each genre on each platform, revealing genre-platform affinity patterns. Each cell\'s color intensity indicates how highly a particular community rates a specific genre: warmer colors suggest the community rates that genre more favorably, while cooler colors indicate lower preference. The horizontal distribution patterns directly answer our central question—notice how some genres cluster in high percentiles on one platform but not others. This visual evidence confirms that different communities do indeed systematically favor different genres.'
   },
   {
     id: 'step-2',
-    title: '📊 Comparison: The Relation Between Ratings and Popularity',
-    body: 'Interestingly, an anime\'s popularity and its rating don\'t always correlate. Some niche masterpieces achieve exceptional ratings, while some big-budget productions may experience rating fluctuations due to content controversy. This finding challenges the common assumption that \'popular equals excellent.\'.'
+    title: '📊 How do individual anime titles distribute within each platform\'s rating ecosystem?',
+    body: 'While the heatmap shows aggregate genre patterns, the beeswarm plot reveals individual title distributions. Each point represents one anime, colored by its platform, with vertical position indicating its percentile rank. Comparing the three swarms side-by-side makes platform-specific rating patterns visible: you\'ll notice distinctive clustering and spread differences across platforms. This granular view lets you explore not just statistical trends but also recognize specific titles and understand how individual works fit into each community\'s overall rating distribution.'
   },
   {
     id: 'step-3',
-    title: '🔍 Pattern: The Evolution of Time and Quality',
-    body: 'With technological advances and improved production techniques, recent anime has shown a rising trend in overall quality. The emergence of streaming platforms has also transformed how anime is produced and distributed, providing creators more innovative opportunities. This evolution reflects healthy industry growth.'
+    title: '🔍 Does popularity influence rating stability across communities?',
+    body: 'The scatter plot explores a critical dimension: do anime with high popularity consistently receive similar ratings across platforms? The x-axis shows popularity (number of voters), while the y-axis represents rating stability—measured by variance in an anime\'s percentile ranks across the three platforms. The color gradient reveals a key pattern: more stable (green) vs. more divergent (red) ratings. Notice how certain popular titles achieve consensus (low variance, stable colors), while others show high divergence despite popularity. This visualization answers whether platform audiences agree on quality consistency or if their preferences diverge significantly.'
   },
   {
     id: 'step-4',
-    title: '⭐ Outliers: Those Exceptional Creations',
-    body: 'Every dataset has outliers, and anime data is no exception. Some works stand out for their innovative storytelling, while others gain fame for their cross-cultural impact. These outliers often represent breakthrough moments and new directions for the industry.'
+    title: '⭐ Which genres show systematic platform preference?',
+    body: 'Radar charts compare how different platforms rate the same genre, with each platform\'s contribution shown as a dimension. The shape of the radar reflects the community\'s distinctive rating pattern for that genre: pointed radars indicate uneven preference (communities disagree), while rounded shapes indicate consensus. By filtering genres below, you can directly observe which specific genres generate the strongest platform differences. This view transforms numerical data into recognizable shapes, making it intuitive to identify genres where communities systematically diverge in their preferences.'
   },
   {
     id: 'step-5',
-    title: '🎯 Conclusion: Insights Beyond the Data',
-    body: 'Through this visualization journey, we\'ve not only seen charts and statistics, but built a bridge connecting data with stories, algorithms with emotions. Anime, as a cultural form, transcends pure data analysis and represents the infinite possibilities of human creativity.'
+    title: '🎯 How do these genre preferences translate into different ranking structures?',
+    body: 'The parallel coordinates plot visualizes ranking variance—when communities rank the same anime differently, their lines cross and diverge across platforms. Stable agreements show as horizontal lines (green), while strong disagreement creates steep slopes (red). This final visualization connects everything: the genre preferences we\'ve discovered throughout this journey directly cause the ranking structures visible here. By following the lines, you see how platform bias at the genre level manifests in individual title rankings, creating the systematic differences in how communities evaluate anime. This completes the analytical arc from macro patterns to micro rankings.'
   }
 ];
 
@@ -113,10 +114,27 @@ useScrollama({
 </script>
 
 <style scoped>
+.app-header h1 {
+  font-size: 1.8rem;
+  margin: 0 0 0.5rem 0;
+}
+
 .app-header .tagline {
   font-size: 1.1rem;
   margin-top: 0.5rem;
   opacity: 0.95;
+}
+
+.platform-link {
+  color: #00D9FF;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.platform-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
 }
 
 .app-header .subtitle {
