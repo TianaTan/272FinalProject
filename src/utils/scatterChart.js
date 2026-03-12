@@ -27,6 +27,7 @@ export class ScatterChart {
     this.dataset = null;
     this.rawData = null;
     this.sharedState = null;
+    this.stabilityFilter = null; // null = all, 'stable', 'moderate', 'unstable'
     
     this.xScale = null;
     this.yScale = null;
@@ -154,7 +155,7 @@ export class ScatterChart {
     
     this.sizeScale = d3.scaleSqrt()
       .domain([0, maxVariance])
-      .range([15, 3])  // Inverted: low variance = large bubble
+      .range([15, 6])  // Inverted: low variance = large bubble, high variance = smaller bubble
       .clamp(true);
 
     // Color scale: variance (red = unstable, green = stable)
@@ -302,11 +303,31 @@ export class ScatterChart {
       .style('font-weight', 'bold')
       .text('Rating Stability');
 
+    // Bubble size explanation
+    legend.append('text')
+      .attr('font-size', 18)
+      .attr('y', 18)
+      .style('fill', '#666')
+      .text('Bubble Size:');
+
+    legend.append('text')
+      .attr('font-size', 16)
+      .attr('y', 35)
+      .style('fill', '#999')
+      .text('● Larger = More Stable');
+
+    legend.append('text')
+      .attr('font-size', 16)
+      .attr('y', 52)
+      .style('fill', '#999')
+      .text('● Smaller = Less Stable');
+
     // Color legend
     legend.append('text')
-      .attr('font-size', 20)
-      .attr('y', 18)
-      .text('Variance:');
+      .attr('font-size', 18)
+      .attr('y', 75)
+      .style('fill', '#666')
+      .text('Color (Variance):');
 
     const colors = [globalConfig.cyberpunkPalette.success_soft, globalConfig.cyberpunkPalette.warning_soft, globalConfig.cyberpunkPalette.primary_soft];
     const labels = ['Stable', 'Moderate', 'Unstable'];
@@ -314,7 +335,7 @@ export class ScatterChart {
     colors.forEach((color, i) => {
       legend.append('rect')
         .attr('x', 0)
-        .attr('y', 25 + i * 18)
+        .attr('y', 80 + i * 18)
         .attr('width', 12)
         .attr('height', 12)
         .attr('fill', color)
@@ -322,8 +343,8 @@ export class ScatterChart {
 
       legend.append('text')
         .attr('x', 18)
-        .attr('y', 30 + i * 18)
-        .attr('font-size', 20)
+        .attr('y', 85 + i * 18)
+        .attr('font-size', 16)
         .attr('dominant-baseline', 'middle')
         .text(labels[i]);
     });
@@ -375,7 +396,7 @@ export class ScatterChart {
       <strong>Rating Variance:</strong> ${variance.toFixed(3)}
       <br/>
       <span style="font-size: 22px; opacity: 0.8;">
-        ${variance < 0.5 ? '✓ Stable' : variance < 1.5 ? '⚠ Moderate' : '✕ Unstable'}
+        ${variance < 0.3 ? '✓ Stable' : variance < 1.0 ? '⚠ Moderate' : '✕ Unstable'}
       </span>
     `;
 
@@ -458,18 +479,49 @@ export class ScatterChart {
   }
 
   /**
+   * Get stability category based on variance
+   */
+  getStabilityCategory(variance) {
+    if (variance < 0.3) return 'stable';
+    if (variance < 1.0) return 'moderate';
+    return 'unstable';
+  }
+
+  /**
+   * Set stability filter and re-render
+   */
+  setStabilityFilter(category) {
+    this.stabilityFilter = category; // null, 'stable', 'moderate', or 'unstable'
+    if (this.g && this.dataset) {
+      const filteredData = this.getFilteredDataset(this.sharedState?.selectedGenre);
+      this.renderScatter(filteredData);
+    }
+  }
+
+  /**
    * Get filtered dataset based on genre
    */
   getFilteredDataset(selectedGenre) {
-    if (!selectedGenre) {
-      return this.dataset;
+    let result = this.dataset;
+
+    // Filter by genre if specified
+    if (selectedGenre) {
+      result = result.filter(anime => {
+        if (!anime.genre) return false;
+        const genres = anime.genre.split('|').map(g => g.trim());
+        return genres.includes(selectedGenre);
+      });
     }
 
-    return this.dataset.filter(anime => {
-      if (!anime.genre) return false;
-      const genres = anime.genre.split('|').map(g => g.trim());
-      return genres.includes(selectedGenre);
-    });
+    // Filter by stability if specified
+    if (this.stabilityFilter) {
+      result = result.filter(anime => {
+        const variance = parseFloat(anime.score_variance) || 0;
+        return this.getStabilityCategory(variance) === this.stabilityFilter;
+      });
+    }
+
+    return result;
   }
 
   /**

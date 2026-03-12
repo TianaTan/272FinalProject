@@ -322,7 +322,7 @@ export class RadarChart {
       .attr('text-anchor', 'middle')
       .attr('font-size', 20)
       .style('font-weight', 'bold')
-      .style('fill', globalConfig.cyberpunkPalette.text.primary)
+      .style('fill', '#7c3aed')
       .text(genreData.genre);
 
     // Count label
@@ -475,6 +475,26 @@ export class RadarChart {
 
     // 重新渲染图表内容（使用相同的数据）
     this.renderRadarGallery(this.dataset);
+  }
+
+  /**
+   * Filter radar gallery by selected genres
+   * Displays only the selected genres with enlarged size for better comparison
+   */
+  filterByGenres(selectedGenres) {
+    if (!this.g || !this.dataset) return;
+
+    let dataToRender = this.dataset;
+    
+    // Filter by selected genres if provided
+    if (selectedGenres && selectedGenres.length > 0) {
+      dataToRender = this.dataset.filter(d => 
+        selectedGenres.includes(d.genre)
+      );
+    }
+    
+    // Re-render with filtered data
+    this.renderRadarGallery(dataToRender);
   }
 
   /**

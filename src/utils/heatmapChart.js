@@ -319,19 +319,19 @@ export class HeatmapChart {
     // Legend background
     legend.append('rect')
       .attr('x', -10)
-      .attr('y', -5)
+      .attr('y', -15)
       .attr('width', totalLegendWidth + 20)
-      .attr('height', 45)
+      .attr('height', 90)
       .attr('fill', 'rgba(13, 10, 37, 0.6)')
       .attr('stroke', '#00D9FF')
       .attr('stroke-width', 1)
       .attr('rx', 5);
 
-    // Legend title
+    // Legend title - positioned above color boxes
     legend.append('text')
-      .attr('x', 0)
-      .attr('y', 15)
-      .attr('font-size', 26)
+      .attr('x', 10)
+      .attr('y', 0)
+      .attr('font-size', 18)
       .attr('font-weight', 'bold')
       .attr('fill', '#e0e0ff')
       .text('Percentile:');
@@ -341,7 +341,7 @@ export class HeatmapChart {
       .data(legendData)
       .join('g')
       .attr('class', 'legend-item')
-      .attr('transform', (d, i) => `translate(${80 + i * (legendRectSize + legendSpacing)}, 0)`);
+      .attr('transform', (d, i) => `translate(${10 + i * (legendRectSize + legendSpacing)}, 10)`);
 
     legendItems.append('rect')
       .attr('width', legendRectSize)

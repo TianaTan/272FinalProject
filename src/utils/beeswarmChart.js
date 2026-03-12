@@ -17,7 +17,7 @@ export class BeeswarmChart {
     this.config = {
       width: config.width || 1600,
       height: config.height || 700,
-      margin: config.margin || { top: 40, right: 20, bottom: 80, left: 100 }
+      margin: config.margin || { top: 80, right: 180, bottom: 80, left: 100 }
     };
     this.container = null;
     this.svg = null;
@@ -166,7 +166,7 @@ export class BeeswarmChart {
         .style('background', 'rgba(0, 0, 0, 0.9)')
         .style('color', '#fff')
         .style('border-radius', '4px')
-        .style('font-size', '24px')
+        .style('font-size', '16px')
         .style('pointer-events', 'none')
         .style('display', 'none')
         .style('z-index', '1000')
@@ -213,6 +213,7 @@ export class BeeswarmChart {
           id: d.id,
           title_en: d.title || 'Unknown',
           title_jp: d.title_jp || '',
+          genre: d.genre || 'Unknown',
           score: parseFloat(d[scoreKey]),
           votes: parseInt(d[votesKey]) || 0,
           mal_score: d.mal_score ? parseFloat(d.mal_score) : null,
@@ -226,8 +227,8 @@ export class BeeswarmChart {
       // Beeswarm simulation
       const simulation = d3.forceSimulation(platformData)
         .force('x', d3.forceX(d => this.xScales[platform](d.score)).strength(0.95))
-        .force('y', d3.forceY(this.yScale(platform) + this.yScale.bandwidth() / 2).strength(0.1))
-        .force('collide', d3.forceCollide(d => this.rScale(d.votes) + 1))
+        .force('y', d3.forceY(this.yScale(platform) + this.yScale.bandwidth() / 2).strength(0.5))
+        .force('collide', d3.forceCollide(d => this.rScale(d.votes) + 2))
         .stop();
 
       // Run simulation
@@ -308,8 +309,8 @@ export class BeeswarmChart {
    * Render legend for bubble sizes
    */
   renderLegend(dataToRender = this.dataset) {
-    const legendX = this.innerWidth + 20;
-    const legendY = -20;
+    const legendX = this.innerWidth - 120;
+    const legendY = -50;
 
     const legend = this.g.append('g')
       .attr('class', 'legend')
@@ -384,6 +385,8 @@ export class BeeswarmChart {
       <strong>${data.title_en}</strong>
       ${data.title_jp ? `<br/><em>${data.title_jp}</em>` : ''}
       <br/>
+      <strong>Genre:</strong> ${data.genre}
+      <br/>
       <strong>Ratings:</strong>
       <br/>MAL: ${data.mal_score ? data.mal_score.toFixed(2) : 'N/A'} (${data.mal_votes ? data.mal_votes.toLocaleString() : 0} votes)
       <br/>IMDb: ${data.imdb_score ? data.imdb_score.toFixed(2) : 'N/A'} (${data.imdb_votes ? data.imdb_votes.toLocaleString() : 0} votes)
@@ -402,12 +405,31 @@ export class BeeswarmChart {
       const tooltipWidth = tooltipRect.width;
       const tooltipHeight = tooltipRect.height;
       
-      let left = event.clientX - containerRect.left + 20;
-      let top = event.clientY - containerRect.top + 55;
+      // Determine position based on mouse location
+      const mouseX = event.clientX - containerRect.left;
+      const chartCenterX = containerRect.width / 2;
+      
+      let left, top;
+      
+      // If mouse is on the left side, show tooltip to the right
+      if (mouseX < chartCenterX) {
+        left = event.clientX - containerRect.left + 30;
+      } else {
+        // If mouse is on the right side, show tooltip to the left
+        left = event.clientX - containerRect.left - tooltipWidth - 30;
+      }
+      
+      // Position vertically
+      top = event.clientY - containerRect.top + 20;
       
       // Check right boundary
       if (left + tooltipWidth > containerRect.width) {
         left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check left boundary
+      if (left < 0) {
+        left = event.clientX - containerRect.left + 20;
       }
       
       // Check bottom boundary
@@ -436,12 +458,31 @@ export class BeeswarmChart {
       const tooltipWidth = tooltipRect.width;
       const tooltipHeight = tooltipRect.height;
       
-      let left = event.clientX - containerRect.left + 60;
-      let top = event.clientY - containerRect.top + 85;
+      // Determine position based on mouse location
+      const mouseX = event.clientX - containerRect.left;
+      const chartCenterX = containerRect.width / 2;
+      
+      let left, top;
+      
+      // If mouse is on the left side, show tooltip to the right
+      if (mouseX < chartCenterX) {
+        left = event.clientX - containerRect.left + 30;
+      } else {
+        // If mouse is on the right side, show tooltip to the left
+        left = event.clientX - containerRect.left - tooltipWidth - 30;
+      }
+      
+      // Position vertically
+      top = event.clientY - containerRect.top + 20;
       
       // Check right boundary
       if (left + tooltipWidth > containerRect.width) {
         left = event.clientX - containerRect.left - tooltipWidth - 20;
+      }
+      
+      // Check left boundary
+      if (left < 0) {
+        left = event.clientX - containerRect.left + 20;
       }
       
       // Check bottom boundary

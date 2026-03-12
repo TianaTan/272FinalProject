@@ -381,6 +381,11 @@ export class ParallelCoordinateChart {
       tooltipText += `<br/><em>${data.title_jp}</em>`;
     }
 
+    // Add genre information
+    if (data.genre) {
+      tooltipText += `<br/><span style="font-size: 0.85em; color: #666;">${data.genre}</span>`;
+    }
+
     tooltipText += '<br/><strong>Rankings:</strong><br/>';
     
     ranks.forEach(r => {
@@ -579,6 +584,36 @@ export class ParallelCoordinateChart {
     // 重新渲染图表内容（使用相同的数据）
     const filteredData = this.getFilteredDataset(this.sharedState?.selectedGenre, this.topN);
     this.renderParallelCoordinates(filteredData);
+  }
+
+  /**
+   * Get disagreement statistics for current dataset
+   * @returns {Object} {stable, moderate, divergent}
+   */
+  getDisagreementStats() {
+    let stable = 0;
+    let moderate = 0;
+    let divergent = 0;
+
+    this.dataset.forEach(anime => {
+      const ranks = [anime.mal_rank_num, anime.imdb_rank_num, anime.bgm_rank_num]
+        .filter(r => r !== null);
+      
+      if (ranks.length < 2) return;
+      
+      const mean = ranks.reduce((a, b) => a + b, 0) / ranks.length;
+      const variance = ranks.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / ranks.length;
+      
+      if (variance < 100) {
+        stable++;
+      } else if (variance < 500) {
+        moderate++;
+      } else {
+        divergent++;
+      }
+    });
+
+    return { stable, moderate, divergent };
   }
 
   /**
